@@ -82,6 +82,7 @@ describe('POST request', () => {
       .expect('Content-Type', /application\/json/)
 
     const blogsAtEnd = await helper.blogsInDb()
+    console.log('blogsAtEnd after added a post', blogsAtEnd)
     expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
 
     const authors = blogsAtEnd.map(b => b.author)
