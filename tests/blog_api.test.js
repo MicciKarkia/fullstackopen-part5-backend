@@ -53,6 +53,17 @@ describe('GET requests', () => {
 
     expect(resultBlog.body).toEqual(blogToView)
   })
+
+  test('a blog post property id is not _id', async () => {
+    const response = await api
+      .get('/api/blogs')
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    console.log('a blog post property id is not _id response', response.body)
+    expect(response.body[0].id).toBeDefined()
+    expect(response.body[1]).toHaveProperty('id')
+  })
 })
 
 describe('POST request', () => {
