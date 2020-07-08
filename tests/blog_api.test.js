@@ -98,7 +98,7 @@ describe('POST request', () => {
 
     await api.post('/api/blogs').send(newBlog).expect(400)
 
-    const blogsAtEnd = await helper.blogsInDb(9)
+    const blogsAtEnd = await helper.blogsInDb()
 
     expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
   })
@@ -118,6 +118,25 @@ describe('DELETE requests', () => {
     const titles = blogsAtEnd.map(r => r.title)
 
     expect(titles).not.toContain(blogToDelete.title)
+  })
+})
+
+describe('Missing likes', () => {
+  test('likes property missing from request', async () => {
+    let newBlog = {
+      title: 'Here is how not to get likes',
+      author: 'Fidel Kajander',
+      url: 'fidel.me',
+    }
+
+    const response = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    expect(response.body).toHaveProperty('likes')
+    expect(response.body.likes).toEqual(0)
   })
 })
 
