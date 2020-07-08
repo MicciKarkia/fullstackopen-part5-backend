@@ -140,6 +140,21 @@ describe('Missing likes', () => {
   })
 })
 
+describe('Missing title and URL', () => {
+  test('a new post without required properties is not added', async () => {
+    const newBlog = {
+      author: 'Fidel Kajander',
+      likes: 3,
+    }
+
+    await api.post('/api/blogs').send(newBlog).expect(400)
+
+    const blogsAtEnd = await helper.blogsInDb()
+
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
+  })
+})
+
 afterAll(() => {
   mongoose.connection.close()
 })
