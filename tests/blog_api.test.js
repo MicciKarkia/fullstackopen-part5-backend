@@ -1,5 +1,5 @@
-const mongoose = require('mongoose')
 const supertest = require('supertest')
+const mongoose = require('mongoose')
 const helper = require('./test_helper')
 const app = require('../app')
 const api = supertest(app)
@@ -9,14 +9,12 @@ const Blog = require('../models/blog')
 beforeEach(async () => {
   await Blog.deleteMany({})
 
-  let blogObject = new Blog(helper.initialBlogs[0])
-  await blogObject.save()
-
-  blogObject = new Blog(helper.initialBlogs[1])
-  await blogObject.save()
+  const blogObjects = helper.initialBlogs.map(blog => new Blog(blog))
+  const promiseArray = blogObjects.map(blog => blog.save())
+  await Promise.all(promiseArray)
 })
 
-describe('GET requests', () => {
+describe('when there is initially some blog posts saved', () => {
   test('blogs returned as json', async () => {
     await api
       .get('/api/blogs')
@@ -25,23 +23,22 @@ describe('GET requests', () => {
   })
 
   test('all blogs are returned', async () => {
-    const response = await api
-      .get('/api/blogs')
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
+    const response = await api.get('/api/blogs')
 
     expect(response.body).toHaveLength(helper.initialBlogs.length)
   })
 
-  test('a blog has author Michael Chan', async () => {
+  test('a specific blog post is within the returned blog posts', async () => {
     const response = await api.get('/api/blogs')
 
     const authors = response.body.map(r => r.author)
 
     expect(authors).toContain('Michael Chan')
   })
+})
 
-  test('a specific blog post can be viewed', async () => {
+describe('viewing a specific blog post', () => {
+  test('succeeds with a valid id', async () => {
     const blogsAtStart = await helper.blogsInDb()
 
     const blogToView = blogsAtStart[0]
@@ -54,20 +51,23 @@ describe('GET requests', () => {
     expect(resultBlog.body).toEqual(blogToView)
   })
 
-  test('a blog post property id is not _id', async () => {
-    const response = await api
-      .get('/api/blogs')
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
+  test('fails with status code 404 if blog post does not exist', async () => {
+    const validNonExistingId = await helper.nonExistingId()
 
-    console.log('a blog post property id is not _id response', response.body)
-    expect(response.body[0].id).toBeDefined()
-    expect(response.body[1]).toHaveProperty('id')
+    console.log('valid non-existing id: ', validNonExistingId)
+
+    await api.get(`/api/blogs/${validNonExistingId}`).expect(404)
+  })
+
+  test('fails with status code 400 id is invalid', async () => {
+    const invalidId = '5a3d5da59070081a82a3445'
+
+    await api.get(`/api/blogs/${invalidId}`).expect(400)
   })
 })
 
-describe('POST request', () => {
-  test('a valid blog post can be added', async () => {
+describe('addition of a new blog post', () => {
+  test('succeeds with valid data', async () => {
     const newBlog = {
       title: 'Here is how to add a post',
       author: 'Fidel Kajander',
@@ -89,7 +89,7 @@ describe('POST request', () => {
     expect(authors).toContain('Fidel Kajander')
   })
 
-  test('blog post without author is not added', async () => {
+  test('fails with status code 400 if data is invalid', async () => {
     const newBlog = {
       title: 'Here is how to not add a post',
       url: 'fidel.me',
@@ -104,8 +104,8 @@ describe('POST request', () => {
   })
 })
 
-describe('DELETE requests', () => {
-  test('a blog post can be deleted', async () => {
+describe('deletion of a blog post', () => {
+  test('succeeds with status code 204 if id is valid', async () => {
     const blogsAtStart = await helper.blogsInDb()
     const blogToDelete = blogsAtStart[0]
 
@@ -152,6 +152,19 @@ describe('Missing title and URL', () => {
     const blogsAtEnd = await helper.blogsInDb()
 
     expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
+  })
+})
+
+describe('property check', () => {
+  test('a blog post property id is not _id', async () => {
+    const response = await api
+      .get('/api/blogs')
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    //console.log('a blog post property id is not _id response', response.body)
+    expect(response.body[0].id).toBeDefined()
+    expect(response.body[1]).toHaveProperty('id')
   })
 })
 
