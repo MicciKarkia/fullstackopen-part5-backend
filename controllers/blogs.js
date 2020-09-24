@@ -71,24 +71,39 @@ blogsRouter.post('/', async (request, response) => {
 })
 
 blogsRouter.delete('/:id', async (request, response) => {
-  await Blog.findByIdAndRemove(request.params.id)
+  //await Blog.findByIdAndRemove(request.params.id)
+  //console.log('request.params is: ', request.params)
 
-  /*console.log('request.params is: ', request.params)
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
 
-  const blogToRemove = await Blog.findById(request.params.id)
-  console.log('blog to remove:', blogToRemove)
+  if(!request.token || !decodedToken.id) {
+    return response.status(401).json({ error: 'token missing or invalid' })
+  }
 
-  const user = await User.findById(blogToRemove.user)
-console.log('user is:', user)
+  const blog = await Blog.findById(request.params.id)
+  console.log('blog is: ', blog)
 
-  const removedBlog = await Blog.findByIdAndRemove(request.params.id)
-  user.blogs = user.blogs.splice(request.params.id)
+  const user = await User.findById(decodedToken.id)
+  console.log('user is:', user)
+  const userid = user._id
+
+  if (blog.user.toString() === userid.toString()) {
+    const removedBlog = await Blog.findByIdAndRemove(request.params.id)
+    const blogid = removedBlog._id.toString()
+    console.log('blog id is: ', blogid)
+    const userBlogs = user.blogs.filter(b => b.toString() !== blogid)
+    user.blogs = userBlogs
+    
+    await user.save()
   
-  await user.save()
-
-  console.log('removed is:', removedBlog)*/
-
-  response.status(204).end()
+    console.log('removed is:', removedBlog)
+    console.log('user blogs: ', user.blogs)
+  
+    response.status(204).end()
+  } else {
+    return response.status(401).json({ error: 'You can only delete your own saved posts' })
+  }
+ 
 })
 
 blogsRouter.put('/:id', async (request, response) => {
