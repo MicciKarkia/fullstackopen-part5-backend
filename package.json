@@ -6,7 +6,8 @@
   "scripts": {
     "start": "cross-env NODE_ENV=production node index.js",
     "dev": "cross-env NODE_ENV=development nodemon index.js",
-    "test": "cross-env NODE_ENV=test jest --verbose --runInBand"
+    "test": "cross-env NODE_ENV=test jest --verbose --runInBand",
+    "lint": "eslint ."
   },
   "author": "Michaela Karkia",
   "license": "MIT",
@@ -23,6 +24,7 @@
     "mongoose-unique-validator": "^2.0.3"
   },
   "devDependencies": {
+    "eslint": "^7.10.0",
     "jest": "^26.1.0",
     "nodemon": "^2.0.4",
     "supertest": "^4.0.2"
