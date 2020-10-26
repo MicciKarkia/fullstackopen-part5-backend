@@ -37,7 +37,6 @@ console.log(blog)
 
 blogsRouter.post('/', async (request, response) => {
   const body = request.body
-  //const token = getTokenFrom(request)
 
   const token = request.token
   console.log('token:', token)
@@ -71,8 +70,6 @@ blogsRouter.post('/', async (request, response) => {
 })
 
 blogsRouter.delete('/:id', async (request, response) => {
-  //await Blog.findByIdAndRemove(request.params.id)
-  //console.log('request.params is: ', request.params)
 
   const decodedToken = jwt.verify(request.token, process.env.SECRET)
 
